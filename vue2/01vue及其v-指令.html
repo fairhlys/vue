@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <!-- 
+    vue的概念：
+        用于构建用户界面的渐进式框架
+        基于数据动态渲染页面
+
+    1，创建vue实例，初始化渲染
+        1.准备容器:vue管理的范围
+        2.引入核心包 -开发版本/生产版本
+        3.创建vue实例 new vue()
+            Vue 实例上$开头的成员是官方暴露的公开内置属性 / 方法，用于操作实例、DOM、数据等，是开发者的核心操作入口；
+
+            1.因此要访问el,应该是实例名.$el。访问data是实例名.$data
+            2.同时vue实例中的方法必须写在methods里面，和data是一样的
+            3.Vue 会把 data 里的所有属性挂载到实例本身，而 methods 中的函数（普通函数）的 this 会指向当前 Vue 实例，
+            因此可以写实例的方法时直接通过 this.属性名 访问 / 修改 data 里的属性。因此也注意不要用箭头函数，否则this会指向更高层
+            4.Vue 初始化 data 时，data 是一个普通对象，此时 this 并不指向 Vue 实例（而是指向 window/undefined），所以 this.list 是 undefined，访问 this.list.length 会抛出 Cannot read properties of undefined (reading 'length') 错误。
+             简单说：data 内部不能用 this 访问自身的其他属性 ——Vue 实例的 this 要等 data 初始化完成后才会绑定。
+            5.data里面的属性名在元素的标签里面可以直接在v-前缀的属性中使用，在标签之间的内容则需要使用{{}}
+            6.核心初始化顺序data → methods → computed → watch → 生命周期钩子
+
+
+        4.指定配置项 ->渲染数据
+            1。el指定挂载点 确认要管理的容器 这里配置的是选择器，指定vue管理的容器
+            2.data提供数据  提供渲染的数据
+            Vue 2 规定，只有 data 选项内的属性才会被挂载到 Vue 实例上，成为模板可访问的响应式属性
+    2.插值表达式：是vue的模板语法
+        {{}}
+        1.利用表达式（可以被求值的代码，js引擎会将其计算出一个结果）进行插值，渲染到页面中
+        2.使用时，数据必须存在，即在data里面声明；
+        3.支持的是表达式，而非语句，所以一个单独的if之类的，不能放进去
+        4.标签属性里面不能用{{}}插值
+        5.不能解析标签
+    3.vue的响应式特性：
+        数据的响应式处理 -> 数据变化，视图自动更新
+        1.访问数据：实例.属性名
+        2.修改数据：实例.属性名 = 值
+
+    4.开发者工具
+        安装vue开发者工具：装插件调试vue应用
+    5.vue指令：
+        vue会根据不同的指令，针对标签实现不同的功能
+        指令：带有v-前缀的特殊标签属性，平常见到的标签属性都是普通标签属性
+
+        Vue 规定：所有以 v- 开头的指令（如 v-html、v-if、v-bind），等号后面的内容必须用引号包裹，引号内部的内容会被当作「JavaScript 表达式」解析。
+
+        因而也只有v-前缀开头的标签属性才能直接用vue实例中的data属性值
+        
+          1.v-html:设置元素的innerHtml属性
+          语法：v-html = '这里面可以放vue实例的属性值或者方法名，而属性值可以是innerhtml，这样就能解析'
+
+          2.v-show:控制元素显示隐藏
+           语法： v-show = '表达式' 表达式true显示 ，false隐藏
+           只控制看不看得见，通过给容器添加display属性，控制该属性的值
+           注意：display会影响文档流，当为none时，会脱离文档流（显示时占流，隐藏时脱流），会有其他元素挤占它的空间，只有visibility才是不影响文档流
+           消耗比较低，频繁切换的场景就使用这个
+          3.v-if：控制元素显示隐藏（条件渲染）
+           语法： v-if="表达式" 表达式true显示，false隐藏
+           控制在不在dom里面
+           显示隐藏切换不频繁的场景使用这个
+          4.v-else：辅助v-if进行判断渲染 紧挨着v-if进行使用 v-else后面加上表达式
+          5.v-else-if：辅助v-if进行判断渲染 紧挨着v-if进行使用 v-else-if = '表达式'
+
+          6.v-on：注册事件 = 添加监听+提供处理逻辑
+                1.v-on：事件名 = '内联语句'
+                    语法：v-on:click =' 表达式（响应）'
+                2.v-on：事件名 = 'methods中的函数名'
+                    传参：@click='fn(参数1,参数2)'
+              为了方便，可以将v-on:这一整块替换为@
+          7.v-bind:动态的设置html的标签属性 -> src url title...
+            语法：v-bind:属性名 = '表达式'  将表达式的值设置给属性
+            v-bind也可以省略，只留下:属性名 =''
+            比如:src=''
+          8.v-for:基于数据循环，多次渲染整个元素 ->数组，对象，数字
+            遍历数组的语法：
+                v-for="(item,index) in 数组"
+                item与index是关键字，index可以省略
+                会多次渲染有着v-for的元素的所有innerHTML
+            v-for中的key：key属性='唯一标识'
+                给列表项添加的唯一标识，便于vue进行列表项的正确排序复用
+                使用：在v-for='' :key=''
+                一般利用filter和key筛选进行删除
+                1.key的值只能是字符串或者数字类型
+                2.key的值必须具有唯一性
+                3.推荐使用id作为key（唯一），不推荐数组的下标，毕竟会改变
+            v-for默认原地修改元素
+            牢牢记住，在模板中v-for只能不能放在除了template的最外面的元素里面，可以在最外面包一个div
+          9.v-model:给表单元素使用，双向数据绑定 ->可以快速获取或设置表单元素内容
+                1.数据变化 ->视图自动更新
+                2.视图的数据变化 ->数据也会自动更新
+                语法：v-model = '变量'
+                    这里的变量名应该是vue实例中data中的属性名
+                可以快速获取表单元素的内容或者设置其内容
+
+
+
+
+    -->
+    <div id="app">
+        <!-- 编写用于渲染的代码逻辑 -->
+        <!-- 第一步 -->
+        <button @click="fn(5)">按钮显示或隐藏</button>
+        <h1 v-show='isshow'>{{msg.toUpperCase()}}</h1>
+        <a href="#">{{count}}</a>
+        <p>{{msg.toUpperCase()}}</p>
+        <p>{{msg.toUpperCase()+'今年'+age+'岁'}}</p>
+        <p>{{'今年'+(age>=18?'成年':'未成年')}}</p>
+        <p>{{'他有个朋友叫做'+friend.name+'爱好是'+friend.desc}}</p>
+        <p v-html="file0" v-if='count>700'></p>
+        <p v-html="file1" v-else-if='count>600'></p>
+        <p v-html="file2" v-else></p>
+        <!--这三个紧挨着，只会执行其中一个  -->
+        <!-- 插值表达式 -->
+        <img v-bind:src="imgurl" alt="">
+        <p v-for="(item,index) in dig ">{{item}}--{{index}}</p>
+    </div>
+    <div id="btn">
+        <button v-on:mousemove="count++">++</button>
+        <span>{{count}}
+        </span>
+        <button @click="count--">--</button>
+
+    </div>
+    <div id="input">
+        账户:<input type="text" v-model="username"><br>
+        密码:<input type="password" v-model="password">
+        <button @click="login">登录</button>
+        <button @click="reset">重置</button>
+    </div>
+</body>
+<script src="../vue.js"></script>
+<script> // 一旦引入vuejs核心包，在全局环境，就可以使用vue构造函数
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            msg: 'hello vue',
+            count: 666,
+            age: 10,
+            friend: {
+                name: 'jepson',
+                desc: '学习vue'
+            },
+            file0: `
+        <a href="#">黑马0</a>
+            `,
+            file1: `
+        <a href="#">黑马1</a>
+            `,
+            file2: `
+        <a href="#">黑马2</a>
+            `,
+            isshow: true,
+            imgurl: 'https://img-s.msn.cn/tenant/amp/entityid/AA1TMT0k.img?w=768&h=308&m=6',
+            dig: [1, 2, 3, 4, 5]
+        },
+        methods: {
+            fn(a) {
+                this.count -= a
+            }
+        }
+    })
+    app.$data.msg = 'faith'
+    app.$data.count = 601
+    app.$data.age = 20
+    app.$data.friend.name = 'faith'
+    app.$data.friend.desc = '打乒乓球'
+    console.log(app.$el);
+    const btn = new Vue({
+        el: '#btn',
+        data: {
+            count: 0
+        }
+    })
+    const input = new Vue({
+        el: '#input',
+        data: {
+            username: '',
+            password: ''
+        },
+        methods: {
+            reset() {
+                this.password = '',
+                    this.username = ''
+            },
+            login() {
+                console.log(this.password);
+                console.log(this.username);
+
+            }
+        }
+    })
+</script>
+
+</html>

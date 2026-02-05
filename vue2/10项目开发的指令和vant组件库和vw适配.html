@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <!-- 
+    1.基于vuecli自定义创建项目架子
+    联网情况下 vue create 项目名
+    然后选择
+        Vue CLI v5.0.9
+         Please pick a preset: Manually select features
+         Check the features needed for your project: Babel, Router, CSS Pre-processors, Linter
+         Choose a version of Vue. js that you want to start the project with 2.x
+         Use history mode for router? (Requires proper server setup for index fallback in production) No
+         Pick a CSS pre-processor (PostCSS, Autoprefixer and CSS Modules are supported by default): Less
+         Pick a linter / formatter config: Standard
+         Pick additional lint features: Lint on save
+         Where do you prefer placing config for Babel, ESLint, etc .? In dedicated config files
+         Save this as a preset for future projects? (y/N) n|
+    2.将目录调整成符合企业规范的目录
+        1.删除多余的文件
+            除了router和store里面的index.js，其他的需要自己写的可以删除
+            然后删除app.vue里面的部分内容
+        2.修改路由配置和app.vue
+        3.新增两个目录api/utils 都在src里面
+            api接口模块：发送ajax请求的接口模块
+            utils模块：自己封装的一些工具方法模块
+    
+    
+
+    认识vant组件库
+        vant-ui
+        组件库：第三方封装好了很多很多的组件，整合到一起就是一个组件库
+        vant(2)vue2
+        vant(3 4) vue3
+        VUE的组件库并不唯一，vant-ui也仅仅是组件库的一种
+        一般按照平台分类：
+            1.pc端：element-ui(element-plus)  ant-design-vue
+            2.移动端：vant-ui  Mint UI Cube UI
+
+        vant全部导入和按需导入（看文档）
+            主要掌握按需导入：
+            1.先安装npm i vant@latest-v2 -S
+            2.安装插件npm i babel-plugin-import -D
+            3.在babel.config.js中配置
+             plugins: [
+                   ['import', {
+                     libraryName: 'vant',
+                     libraryDirectory: 'es',
+                     style: true
+                   }, 'vant']
+                 ]
+            设置了之后记得重启项目 --npm run serve
+            4.引入一些ui
+            在main.js中按需导入注册,这样所有组件都能使用
+                import vue from 'vue'
+                import {button} from 'vant'
+                Vue.use(Button)
+            在文档中使用方式一的自动按需引入
+            5.使用按照文档
+            6.提取到vant-ui.js，在main.js中导入
+
+    
+    项目中的vw适配
+        基于postcss插件实现项目vw适配
+        px-- vw 可以在编译的时候自动将px转为vw
+        1.安装插件：
+            npm i postcss-px-to-viewport@1.1.1 -D
+        2.根目录新建postcss.config.js文件 ，填入配置
+            module.exports = {
+             plugins: {
+              'postcss-px-to-viewport': {
+                viewportWidth: 375
+                //标准屏宽度 
+              } 
+             }
+            }
+        这样就不用写rem了，直接就用px看效果就行
+
+    axios封装：
+        使用axios来请求后端接口，一般都会对axios进行一些配置，二次封装，单独封装到一个request模块中
+
+        对于axios  需要创建一个实例，可以使用自定义配置新建一个实例，然后利用这个实例发请求
+
+    API:
+        将请求封装成方法，统一存放到api模块，与页面分离
+
+    通过响应拦截器，统一处理接口的错误提示
+
+    登录成功后得到的token和id都存在vuex里面,配合着localstorage使用
+
+    在完成登录之前添加一个loading效果，但是完全可以在请求拦截器添加，响应拦截器关闭
+
+    页面访问拦截：
+        基于全局前置守卫，进行页面访问拦截处理
+        1.所有的路由一旦被匹配到，都会先经过全局前置守卫
+        2.只有全局前置守卫放行，才能真正解析渲染组件，才能看到页面内容
+        3.所有的路由在解析渲染到页面之前都会经过全局前置守卫
+        router.beforeEach((to,from,next) => {
+            to:到哪儿去
+            from:从哪儿来
+            next():是否放行
+                    如果next()调用，那就是放行到to的路径
+                       next(路径) ：拦截到next里面配置的路径页面
+            访问权限页面时，拦截或放行的关键点 -> 用户是否有登录权token
+            同时，对于非权限页面，直接放行
+        })
+    mixins:
+        封装一段代码进行复用
+        但是假如这段代码需要用到组件内的数据，比如this.$route.query之类的
+        那么就不能放在utils，只能放在mixins文件夹里面，在里面写js代码
+        利用export default {
+          // 写复用的组件配置项
+        }
+        导入的时候导入整个js文件
+        在组件配置项里面配置mixins:[js文件中数据或者函数名]
+    跨模块调用mutations
+        查找vuex官方文档
+
+    打包发布：
+        vue脚手架只是开发过程中，协助开发的工具，当开发完成，脚手架不参与上线
+        打包：
+            将多个文件压缩合并
+            语法降级
+            less sass ts 语法解析
+        打包后，可以生成浏览器能够直接运行的网页 => 就是需要上线的源码
+        vue脚手架工具提供了打包命令，直接使用就可
+        命令:yarn build / npm run build
+            会在项目的根目录创建一个文件夹'dist'，dist中的文件就是打包后的文件，只需要放在服务器即可
+            默认情况下，需要放到服务器根目录上打开，如果需要双击运行，需要配置publicPath配成相对路径，在vue.config.js中配置
+    打包优化： 路由懒加载
+        当打包构建应用时，js包会变得很大，影响页面加载。
+        如果能够把不同路由对应的组件分割成不同的代码块，然后当路由被访问时才加载对应应用
+
+        在router的index.js中
+        异步组件改造：
+        const ProDetail = () => import('组件地址')
+        在路由中应用
+        path: '路由地址', component: ProDetail
+
+    在路由views里面的layout相当于是路由出口，这样就将所有路由串起来，然后再在app.vue写一个router-view，作为路由出口，挂载在app.vue上
+
+    -->
+</body>
+
+</html>

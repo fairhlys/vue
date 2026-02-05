@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <!-- 
+    Vuex概述：
+        Vuex是一个vue的状态管理工具，这里的状态就是数据
+        也就是说，vuex是一个插件，可以帮我们管理vue通用的数据（多个组件共享的数据）
+    场景：
+        某个状态在很多个组件都在使用
+        多个组件共同维护一份数据
+    共同维护同一份数据，数据集中化管理
+    响应式变化
+
+    相当于要把共同的数据放在store里面，每个组件都能访问和修改
+
+
+    构建vuex环境（多组件数据共享）
+        基于脚手架创建项目，构建vuex多组件数据共享环境
+        1.创建一个空仓库
+            安装vuex插件，初始化一个空仓库
+            1.npm i vuex@3
+            2.新建store/index.js文件夹 就在src里面
+            3.使用 Vue.use(Vuex)
+            4.创建仓库 new Vuex.Store()
+        2.挂载在main.js中，就和router一样
+            无论是router还是vuex 都用this.$store/this.$router检验创建是否成功
+        3.如何给仓库提供数据，如何使用仓库的数据
+            1.提供数据：
+                state提供唯一的公共数据源，所有共享的数据都要同一放到store中的state中存放
+                在state对象中添加我们要共享的数据
+                const Store = new Vuex.Store({
+                  state: {
+                  count: 100
+                }
+                })
+            2.使用数据：
+                1.通过store直接访问
+                  获取store:
+                    (1) this.$store  需要$
+                    (2)import导入store  不用$ 不好用
+
+                    模板中：{{$store.state.xxx}}
+                    组件逻辑中：this.$store.state.xxx
+                    JS模块中： store.state.xxx
+                2.通过辅助函数
+                    mapState是辅助函数，帮助我们把store中的数据自动映射到组件的计算属性中computed
+                        自动生成：
+                            computed: {
+                              count () {
+                                return this.$store.state.count
+                              }
+                            }
+                    1.导入mapState函数 在当前组件里面导入
+                      import { mapState} from 'vuex'
+                    2.数组方式引入state
+                      mapState(['count','title','...'])
+                    3.在computed里面展开mapState数组
+                      computed () {
+                        ...mapState(['count','title','...'])
+                      }
+        vuex同样遵循单项数据流，组件中不能直接修改仓库中的数据
+
+        mutations；修改state数据
+            vuex里面的一个对象，可以配置在store中，里面的每一个方法可以对state的值修改，方法的参数是state
+            const store = new Vuex.Store({
+                  state: {
+                    count: 101
+                  },
+                  mutations: {
+                    addCount (state) {
+                      state.count++
+                    }
+                  }
+                })
+            调用mutations里面的方法
+                this.$store.commit('addCount')
+        mutations传参：
+            1.可以传参的mutations方法
+            addCount (state, n) {
+              state.count += n
+            }
+            2.通过commit提交函数
+            this.$store.commit('addCount', 参数)
+            传递多个参数的话，那就传递一个对象或者数组
+
+            和父子间通信一样：不能直接使用v-model实现响应式数据，而是要拆分v-model
+            利用e.target.value 和mutations里面的更新方法实现响应式数据
+        辅助函数：mapMutations
+            和mapState很想，把位于mutations里面的方法提取出来，映射到组件methods里面
+            在methods里面：
+                methods: {
+                  ...mapMutations(['addCount'])
+                }
+                相当于在methods里面添加了方法addCount(参数)
+            当然和mapState一样需要在当前组件引入
+            import {mapState,mapMutations} from 'vuex'
+        
+        actions:处理异步操作
+            mutations必须是同步的（便于监测数据变化，记录调试）
+            异步操作在actions里面，然后还是在mutations里面进行数据改变
+        在vuex的store中
+            mutations: {
+              addCount (state, n) {
+                state.count += n
+              }
+            }
+            要想完成一秒之后再加，那就是异步操作，在actions提供异步操作的方法：
+            actions: {
+              setAsyncCount (context ,num) {
+                setTimeout(()=> {
+                  context.commit('addCount', num)
+                }, 1000)
+              }
+            }
+            这里的context可以理解为store ，num是参数,不能直接操作state，需要借用mutations里面的方法
+        在当前页面中要想调用异步方法：
+            this.$store.dispatch('setAsyncCount' , n)
+        辅助函数：mapActions：
+            把位于actions中的方法提取出来，映射到组件methods里面
+            1.导入mapActions
+                import {mapActions} from 'vuex'
+            2.在methods里面
+                methods: {
+                  ...mapActions(['setAsyncCount'])
+                }
+
+        getters:类似于计算属性
+            除了state之外，又是我们还需要从state中派生出一些状态，这些状态是依赖state的，此时会用到getters
+            比如state里面有个数组，组件想要数组里面数字大于5的，那么就需要getters
+            getters和actions同级别的
+                getters: {
+                  filterList (state) {
+                    return state.list.filter(item => item > 5)
+                  }
+                }
+                注意getters里面的方法的第一个参数和mutations一样是state
+                getters里面的方法必须有返回值
+                这个和mutations不一样，mutations涉及对state的修改，这个只是传送的数据有修改，state没变
+        当前组件要想访问getters：
+            $store.getters.filterList
+        通过辅助函数访问 mapGetters
+            在computed里面：
+                computed: {
+                  ...mapGetters(['filterList'])
+                }
+            当然还是要先引入：
+            import {mapGetters} from 'vuex'
+        当然，如果state改变了，这个也会相应的改变
+                
+        module模块：
+            由于vuex使用单一状态树，应用的所有状态会集中到一个比较大的对象。当应用变得非常复杂时，
+            store对象就有可能变得相当臃肿
+            因此要将store里面的分为多个module
+            模块拆分：
+                1.在store文件夹下新建modules文件夹，让然后新建多个js文件，即多个module模块
+                  每个模块不需要新建vuex，它们用的是一个vuex.store 只需要在各个模块里面写数据就行了：
+                    const state = {
+                    name: 'jack',
+                    data: 100
+                    }
+                    const mutations = {}
+                    const actions = {}
+                    const getters = {}
+                    
+                    export default {
+                    state,
+                    mutations,
+                    actions,
+                    getters
+                    }
+                2.将多个modules导入到store里面的index.js
+
+                import user from './modules/user.js'
+
+                const store = new Vuex.store({
+                  modules: {
+                    user
+                  }
+                })
+            尽管分模块了，但是子模块的state，还是会挂到根级别的state中，属性名就是模块名 这里各个子模块的state成为了对象
+            同样的，子模块的muattions actions getters都会挂到根级别的相应地方去，属性名就是模块名
+
+            访问state数据：
+                1.直接通过模块名访问$store.state.模块名.xxx
+                    {{ $store.state.user.name }}
+                2.通过mapState映射
+                    默认根级别的映射 mapState(['xxx'])
+                    子模块的映射  mapState('模块名',['xxx']) --需要开启命名空间（在子模块的导出时加上namespaced:true）
+                    多个mapState不影响
+                    在computed里面使用
+                    ...mapState('user', ['data', 'count'])
+                  但是如果子模块有和index.js中一样名字的变量，那么
+                  方式：字符串简写形式（更简洁）
+                    // ...mapState({
+                    // userName: 'user/name', // 模块名/变量名
+                    // cartName: 'cart/name'
+                    // })
+
+            访问getters数据
+                1.直接通过模块名访问$store.getters['模块名/xxx']
+                    {{ $store.getters['模块名/xxx'] }}
+                2.通过mapGetters映射
+                    默认根级别的映射 mapGetters(['xxx'])
+                    子模块的映射 mapGetters('模块名',['xxx']) --需要开启命名空间（在子模块的导出时加上namespaced:true）
+                    多个mapGettters不影响
+                    在computed里面使用
+                    ...mapGetters('user', ['getBig'])
+                  多个模块的getters命名一样的话：
+                  computed: {
+                    // 方式：mapGetters(模块名, { 组件内名称: 模块内getter名 })
+                    ...mapGetters('user', {
+                    userFullName: 'fullName' // user模块的fullName → 组件内叫userFullName
+                    }),
+                    ...mapGetters('cart', {
+                    cartFullName: 'fullName' // cart模块的fullName → 组件内叫cartFullName
+                    }),
+            访问mutations方法
+                默认模块中的mutations和actions会被挂载在全局，需要开启命名空间，才能挂载在子模块
+                1.直接通过store调用 $store.commit('模块名/xxx', 额外参数) 
+                2.通过mapMutations映射：
+                    默认根级别的映射 mapMutations(['xxx'])
+                    子模块的映射mapMutations('模块名',['xxx']) --需要开启命名空间
+                遇到不同模块同名的mutations：
+                methods: {
+                // 方式：mapMutations(模块名, { 组件内方法名: 模块内mutation名 })
+                ...mapMutations('user', {
+                updateUserName: 'SET_NAME' // user模块的SET_NAME → 组件内叫updateUserName
+                }),
+                ...mapMutations('cart', {
+                updateCartName: 'SET_NAME' // cart模块的SET_NAME → 组件内叫updateCartName
+                }),
+            访问actions方法：
+                默认模块中的mutations和actions会被挂载在全局，需要开启命名空间，才能挂载在子模块
+                1.直接通过store调用 $store.dispatch('模块名/xxx', 额外参数)
+                2.通过mapActions映射：
+                    默认根级别的映射 mapActions(['xxx'])
+                    子模块的映射mapActions('模块名',['xxx']) --需要开启命名空间
+                遇到不同模块actions命名一样；
+                methods: {
+                // 方式：mapActions(模块名, { 组件内方法名: 模块内action名 })
+                ...mapActions('user', {
+                asyncUpdateUserName: 'updateName' // user模块的updateName → 组件内叫asyncUpdateUserName
+                }),
+                ...mapActions('cart', {
+                asyncUpdateCartName: 'updateName' // cart模块的updateName → 组件内叫asyncUpdateCartName
+                }),
+            子模块的actions在定义时
+                context.commit('SetNewName', 额外参数)
+                此时的context其实是上下文，基于当前模块
+
+
+
+            基于json-server工具，准备后端接口服务环境
+              1.安装全局工具json-server（全局工具进安装一次）
+              2.代码根目录新建一个db目录
+              3.将资料index.json移入db目录
+              4.进入db目录，执行命令，启动后端接口服务
+                json-server index.json
+              5.访问接口测试 http://localhost:3000/cat
+
+            一般在vuex用axios取得数据，传给app.vue，再将数据中的一份通过父子通信传给组件
+
+            {
+            "cart": [
+            {
+            "id": 100001,
+            "name": "低帮城市休闲户外鞋天然牛皮COOLMAX纤维",
+            "price": 128,
+            "count": 1,
+            "thumb": "https://yanxuan-item.nosdn.127.net/3a56a913e687dc2279473e325ea770a9.jpg"
+             }
+            }
+             这里是index.json 用json-server运行后得到接口http://localhost:3000
+             由于有cart所以可以根据http://localhost:3000/cart 访问cart里面的所有数据
+             还可以根据http://localhost:3000/cart/10001 访问id为10001的cart里面的数据
+
+            const res = await axios.patch(`http://localhost:3000/cart/${obj.id}`, {
+            count: obj.count
+            })
+            给index.json中的cart中的每条数据新加了个count属性
+
+            像是总价格，总个数都在getters里面写，没必要单独在state里面写
+
+            在mutations,getters,actions可以相互调用
+            调用state：state.
+            调用getters: context.getters. 或者在getters里面的每一个属性方法 （state,getters）
+            调用actions：context.dispatch('')
+            调用mutations ： context.commit('')
+
+    -->
+</body>
+
+</html>

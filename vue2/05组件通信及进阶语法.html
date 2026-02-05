@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <!--  
+    组件通信：指组件与组件之间的数据传递
+        组件的数据是独立的，无法直接访问其他组件的数据
+        想用其他组件的数据 ->组件通信
+    组件关系：和元素之间的关系差不多，不过都只能有一个根组件
+        1.父子关系 
+        2.非父子关系
+    组件通信解决方法：
+    1.父子关系：
+        props和$emit
+        props父组件传递数据:
+            父组件的数据通过 props 往下传递给子组件
+            比如：
+                父组件的data(){
+                    return {
+                        mytitle:'vue学习'
+                    }
+                },
+            那么在父组件的template里面的子组件：
+                <son :title="mytitle">  </son>  通过属性传数据，传递过去的数据名为title
+            在子组件中：
+                export default{
+                    props:['title'] 通过props接收数据
+                }
+        &emit子组件修改数据:
+            子组件通过 $emit 通知父组件修改更新
+            1.父组件提供传递数据的修改处理函数：
+                父组件：
+                    methods:{
+                      changeTitle(newTitle){
+                        this.mytitle = newTitle
+                      }
+                    }
+            并通过template里面子组件 通过属性传递处理函数
+                <son :title="mytitle" @changeFn="changeTitle"> </son> 这里不要理解为传递了，理解为监听，监听到对面触发changeFn，我们触发changeTitle；这里的changeFn更像一个由头
+            2.子组件使用$emit触发changeFn并传递新数据：
+                子组件：
+                 methods:{
+                    handchange(){
+                    this.$emit('changeFn','传智教育')
+                    }
+                 }
+            子组件可以在自己的template里面使用
+                <button @click="handchange">
+        props详解：
+                组件上注册的一些自定义属性，可以接受来自父组件的数据
+                可以传递任意数量的prop和任意类型的prop
+        props校验：为组件的prop指定验证要求，不符合要求，控制台就会有错误提示
+                语法：
+                    1.类型校验
+                        语法：在子组件中：
+                            props:{
+                             title:string,
+                             age:number
+                            }
+                             这也接受了数据
+                    2.非空校验
+                    3.默认值
+                    4.自定义校验
+                        props:{
+                            w:{
+                                type:number,    //类型检测
+                                required:true,  //非空检测
+                                default:'',     //默认值
+                                    基本类型（字符串 / 数字 / 布尔）：默认值可以直接写（比如 default: 0），因为基本类型是值传递，每个实例拿到的是独立的值；
+                                    引用类型（数组 / 对象）：如果直接写 default: []，这个数组会被当作「全局单例」—— 所有使用该组件的实例都会共享同一个数组，修改其中一个实例的数组，其他实例的数组也会被篡改（数据污染）；
+                                    函数返回的方式：每个组件实例初始化时，都会执行一次默认值函数，返回一个全新的数组 / 对象，确保每个实例的默认值都是独立的，互不影响。
+                                validator(value){    //自定义校验 return true通过校验
+                                   //这里的value就是传过来的w的值
+                                   return value>100
+                                }
+                            }
+                        }
+        prop和data：
+            data的数据是当前组件的 ，可以随便改
+            prop的数据是外部的，不能直接改，要遵循单项数据流
+            父组件通过prop传递的数据往下流动是单向的，跟新后会自动流动
+
+        msg="Welcome..." 传递字符串字面量 静态属性  这里也是传递数据，不过传递的只是一个字面量
+        :msg="someVar" 传递变量或表达式 动态属性  这里需要该组件的data里面有someVar这个变量或者表达式
+                    
+
+
+
+    2.非父子关系：
+        1.provide & inject
+            作用：跨层级共享数据
+            1.父组件provide()提供数据
+                export default{
+                    provide(){
+                        return {
+                            color:'',
+                            userInfo:''
+                             数据
+                        }
+                    }
+                }
+            2.子/孙组件inject取值使用
+                export default {
+                    inject:['color','userInfo']
+                }
+            如果共享的是简单数据类型，那么不是响应式，就算父组件的数据改变，子组件依然不会改变
+            如果共享的是复杂数据类型，那么就是响应式，因此一般是把所有数据裹在对象里面传递
+
+        
+
+        2.event bus事件总线  vue2的做法
+            作用:非父子组件之间，进行简易消息传递
+            1.创建一个都能访问到的事件总线(空Vue实例)  ->utils/EventBus.js
+                import Vue from 'vue'
+                const Bus = new Vue()
+                export default Bus
+            2.A组件(接收方)，监听Bus实例的事件
+                    created(){
+                        Bus.$on('sendMsg',(msg)=>{
+                            this.msg = msg
+                        })
+                    }
+                    $on是监听的意思
+              B组件(发送方)，触发Bus实例的事件
+                    Bus.$emit('sendMsg','这是一个消息')
+            这里的sendMsg真的存在与否无所谓，不过这里的B组件相当于广播了
+
+
+    终极解决方案：
+        Vuex
+
+    v-model的原理：
+            本质上是一个语法糖。例如应用在输入框上，就是value属性和input事件的合写
+            提供双向的数据绑定
+            <input :value = 'msg' @input='msg =$event.target.value'>
+            $event用于在模板中，获取事件形参
+    单向数据流（Vue 强制规则）：props 是「父组件 → 子组件」的单向传递，子组件只能读取 props，不能直接修改（修改会触发警告，且父组件数据不同步，导致数据混乱）；
+        v-model 本质：v-model 是语法糖，核心是「绑定值 + 触发更新事件」，比如 <input v-model="val"> 等价于：
+        <input :value="val" @input="val = $event.target.value">
+    它会主动修改绑定的变量—— 如果这个变量是 props，就违反了 “单向数据流”，这就是矛盾的根源。
+
+    注意：
+        @input="parentData = $event"：父组件监听子组件的 input 事件，把事件参数（子组件的新值）赋值给 parentData，完成自身数据更新
+        拆分 v-model 后，@input 触发自定义方法时，子组件 emit 传递的参数会自动作为方法的第一个参数传入，无需手动传参。
+        可以通过 @input="方法($event, 参数2, 参数3...)" 的方式，同时传递子组件 emit 的参数和自定义参数；
+        $event 是 Vue 中专门用来表示「事件触发时传递的原生参数 / 子组件 emit 的参数」的特殊变量，你可以在调用方法时显式传入 $event（对应子组件 emit 的参数），再追加任意自定义参数
+            子组件：$emit('input', val1, val2)
+            父组件：@input="handleInput($event, '父组件自身的数据') 将接收到的emit参数和父组件自身的数据传入handleInput方法里面
+            此时的$event是一个数组，可以通过解构拿到emit传递的多个值
+                    
+    表单类组件封装 & v-model简化代码
+            1.基本方法
+                1.父传子：数据应该是父组件props传递而来，v-model拆解绑定数据
+                2.子传父：监听输入，子传父传值给父组件修改
+            v-model不能和props传递而来的数据绑定，因为props只能父传子，v-model改变，但是props不能修改
+            因此拆解，比如select标签：:value=传递来的数据 ，然后后面跟上change事件：@change='handlechange'
+            但是由于value=传递的数据，因此改变select也不会改变value，因此不能直接通过value属性取现在的值，而是通过e.target.value取值
+            然后传递回去修改。传递回去后，父组件可以用$event直接获取传递回来的值
+
+            2.父组件使用v-model，实现双向绑定，这个完全不推荐
+                1.子组件中：props通过value接受，事件触发input
+                2.父组件中：v-model给组件直接绑定数据
+            总而言之就是实现父子组件间数据的双向绑定，自己到时候可以琢磨琢磨
+
+    .sync修饰符：
+        作用：可以实现子组件与父组件数据的双向绑定
+        特点：prop属性名，可以自定义，非固定为value
+        场景：封装弹框类的基础组件，visible属性 true显示 false隐藏
+        本质：就是 :属性名 和  @update:属性名 合写
+        :visible.sync = 'isshow' 相当于 :visible='isshow' @update='isshow = $event'
+        props:{
+            visible : boolean
+        }
+        this.$emit('update:visible',false)
+    
+    ref 和 $refs
+        作用：利用ref和$refs 可以用于获取dom元素，或组件实例
+        特点：查找范围 ->当前组件内（更精确稳定）
+        1.获取dom：
+            1.目标标签 - 添加ref属性
+            <div ref='abc'>
+            2.恰当时机，通过this.$refs.xxx获取目标元素，操作dom都是mounted生命周期钩子的事情
+            mounted(){
+                log(this.$refs.abc)
+            }
+        2.获取组件：
+            1.目标组件 - 添加ref属性
+            在目标组件加上 ref='abc'
+            2.恰当时机，通过this.$refs.xxx 获取目标组件，就可以调用组件对象里面的方法
+               this.$refs.abc.组件方法名.也可以不再mounted里面使用
+
+    Vue异步更新 & $nextTick
+        vue是异步dom更新，dom的创建和更新是不同步的,详细来说就是：当数据发生变化时，Vue 会开启一个异步队列来缓冲这一变化。
+        因此 
+            $nextTick:等dom更新后，才会触发执行此方法里的函数体
+        语法
+            this.$nextTick(()=>{
+                this.$refs.inp.focus()
+            })
+
+
+    -->
+
+
+</body>
+
+</html>

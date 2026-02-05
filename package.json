@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "axios": "^1.13.2",
+    "pinia-plugin-persistedstate": "^4.7.1",
+    "vant": "^2.13.9"
+  }
+}

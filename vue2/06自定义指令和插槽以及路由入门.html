@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <!-- 
+    自定义指令：
+        自己定义的指令，可以封装一些dom操作，拓展额外功能
+            写在main.js里面
+        1.全局注册：
+            在main.js里面注册，在任何组件都可以使用
+            语法：
+                Vue.directive(指令名,{
+                //下面都是指令的配置项
+                    bind(el,binding){},
+
+                    inserted (el,binding){
+                        el.focus()//这里的el就是指令绑定的元素  
+                    },//  inserted的意思是：指令所在元素插入到dom时触发,这应该也是一个钩子
+
+                    update(el,binding){},
+
+                    componentUpdated(el,binding){},
+
+                    unbind(el,binding){}
+                })
+        2.局部注册
+            在某个组件里面注册，只能在当前组件使用
+            这里依旧是在export default里面配置
+            语法：
+                directives: {
+                指令名 : {
+                     inserted (el) {
+                     el.focus()  
+                    }
+                }
+            }
+
+        使用：<input v-指令名 type = "text"/>
+            在你想要使用指令的元素上使用v-指令名即可
+            两者注册的使用方法是一样的
+        在绑定指令时，可以通过=的形式为指令绑定具体的参数值
+            使用：<input v-指令名='指令值' type="text" />
+        然后通过bing.value可以拿到指令的参数值，指令值修改会触发update函数钩子
+            例子：
+                Vue.directive('color',{
+                    inserted(el,binding){
+                        el.style.color = binding.value
+                        //在这里指令的值就已经拿到了，可以直接使用,这个不是响应式，因此需要在update钩子里面写修改
+                    },
+                    update(el,binding){
+                        el.style.color = binding.value
+                        //这里是指令的值如果修改了，会触发update函数钩子
+                    }
+                })
+        
+        v-loading指令封装：
+            实际开发中，发送请求需要时间，在请求的数据未回来时，页面会处于空白状态 =》 用户体验差
+            解决方法：在数据请求期间，显示一个加载中的动画，数据回来后再显示数据
+
+            本质上loading就是个蒙层，盖在了盒子上
+            数据请求中，开启loading状态，添加蒙层
+            数据请求完毕，关闭loading状态，移除蒙层
+
+            实现：
+            1.准备一个loading类，通过伪元素定位，设置宽高，实现蒙层
+            2.开启关闭loading状态（添加移除蒙层），本质只需要添加移除类即可
+            3。结合自定义指令的语法进行封装复用
+            4.使用指令时，传入一个布尔值，表示loading状态的开关
+        
+        插槽 -默认插槽 是父元素在插槽中提供数据，然后传递到子组件的slot部位进行渲染
+            作用：让组件内部的一些结构支持自定义   
+            当组件内某一部分的结构不确定，就可以使用slot来占位，使用组件时，可以自定义这部分结构
+            语法：
+                1.在组件的模板结构中，使用<slot></slot>标签，表示这个位置是插槽位置
+                2.在使用组件时，在使用组件的组件里面，使用组件标签包裹的内容，就会被渲染到组件的slot位置   
+            父组件：
+                <FancyButton>
+                    Click me!  插槽内容
+                </FancyButton>
+            在fancybutton组件中：
+                <button class="fancy-btn">
+                    <slot></slot>  插槽出口,渲染Click me内容
+                </button>
+                
+            这个不仅支持文本，也支持标签结构 
+        插槽 -后备内容
+            通过插槽完成了内容的定制，传什么显示什么，但是如果不传就是空白
+            因此要给插槽的位置显示默认内容，即插槽后备内容
+            语法：
+                在组件的slot标签中，添加默认内容
+                <slot>这里是后备内容</slot>    
+            当是使用组件时不给组件传内容，插槽就会显示后备内容
+        插槽 -具名插槽
+            作用：组件内部有多个插槽位置，可以通过具名插槽来区分不同插槽位置
+            语法：
+                1.多个slot使用name属性区分名字
+                    <slot name="header"></slot>
+                    <slot name="main"></slot>
+                    <slot name="footer"></slot>
+                2.template配合v-slot:名字来分发对应标签 这里的名字不用加引号
+                    <my-component>
+                        <template v-slot:header>
+                            这里是头部内容
+                        </template>
+                        <template v-slot:main>
+                            这里是主体内容
+                        </template>
+                        <template v-slot:footer>
+                            这里是底部内容
+                        </template>
+                    </my-component>
+                    这里的 v-slot:名字  可以简写为#名字
+                一旦插槽起了name属性，那么就是具名插槽，只能被对应名字的template分发内容
+        插槽 -作用域插槽
+            插槽的一个传参语法，定义slot插槽的同时是可以插槽的，给插槽上可以绑定数据，将来使用组件时可以用到
+            语法：
+                1.在组件的slot标签上，使用v-bind绑定数据
+                    <slot v-bind:msg="message"></slot>
+                2.在使用组件时，template标签上通过v-slot接收传递的数据
+                    <my-component>
+                        <template v-slot:default（如果是具名插槽就是#名字='对象'）="slotProps">
+                            {{ slotProps.msg }}
+                        </template>
+                    </my-component>
+                这里是子传父的过程
+                父组件得到数据时还可以进行解构
+                    <template v-slot:default=" {msg} ">
+                        {{ msg }}
+                    </template>
+                这里的slotProps是一个对象，包含了所有传递过来的数据
+                这里的default是默认插槽的意思，如果是具名插槽就是具名插槽的名字
+
+
+        插槽的分类：默认插槽和具名插槽
+
+        单页应用程序：SPA -Single Page Application
+            整个应用只有一个html页面，所有的功能都在这个页面中完成
+            页面中的内容是通过路由切换来实现的，而不是通过跳转页面来实现的
+            按需更新页面内容，需要明确访问路径和组件的关系--路由
+            优点：
+                1.用户体验好，切换页面快
+                2.减少服务器压力，减少请求
+            缺点：
+                1.首屏加载慢
+                2.不利于SEO优化
+        多页应用程序：MPA -Multi Page Application
+            传统的多页面应用，每个页面都是一个独立的html页面
+            页面之间通过跳转来实现
+            优点：
+                1.首屏加载快
+                2.有利于SEO优化
+            缺点：
+                1.用户体验差，切换页面慢
+                2.增加服务器压力，增加请求
+
+        路由：
+            路由是实现页面跳转和组件切换的核心技术
+            通过路由，可以将不同的路径映射到不同的组件上
+            用户访问不同的URL时，会自动渲染对应的组件内容
+            路由的实现需要借助路由库，比如vue-router
+            Vue中的路由：路径和组件的映射关系
+
+        VueRouter：
+            作用：修改地址栏路径，切换组件，实现SPA单页应用
+            本身就是VUE官方的一个路由插件，是一个独立的包，需要单独安装
+
+            使用：
+                五个基础步骤：
+                    1.下载：下载VueRouter模块到当前工程 由于现在学习的是vue2，因此需要下载对应版本的vue-router 3.x版本
+                        npm i vue-router@3.6.5
+                    2.引入
+                        import VueRouter from 'vue-router'
+                    3.安装注册
+                        Vue.use(VueRouter)  进行组件的全局注册
+                    4.创建路由对象
+                        const router = new VueRouter()
+                    5.注入，将路由对象注入到 new Vue实例中，建立关联
+                        new Vue({
+                            router,
+                            render:h=>h(App)
+                        }).$mount('#app')
+                两个核心步骤：
+                    1.创建需要的组件，放在views目录，配置路由规则
+                        现在main.js引入views目录下的组件
+                        然后const router = new VueRouter({
+                            routes:[
+                            { path:'/路径1',component:组件对象1},
+                            { path:'/路径2',component:组件对象2}
+                             //这里就是地址栏路径和组件的映射关系
+                             这里的路径前面需要加/，表示根路径
+                            ]
+                        })
+                    2.配置导航，配置路由出口（路由匹配的组件显示的位置）
+                        在App.vue中配置
+                        路由出口：<router-view></router-view>  组件切换后组件内容显示的地方
+                            利用 <router-view></router-view> 进行组件切换显示
+                        路由链接：<router-link to="/路径">链接名称</router-link>  用来切换路径的标签，点击后切换路径，进而切换组件
+                            这样，在app.vue里面就可以用<a href="#/路径1">链接</a>的形式进行跳转了
+
+                    import 路径的特点：
+                        是「相对 / 绝对文件路径」，比如 ./components/MilkTea.vue、@/views/Home.vue；
+                        只在代码编译 / 运行时生效，用户完全感知不到（用户看不到你项目的文件结构）；
+                        作用是「加载组件代码到内存中」，让程序知道「有这个组件可以用」。
+                    routes.path 的特点：
+                        是「URL 路径」，必须以 / 开头（符合浏览器 URL 的规范）；
+                        面向用户，用户可以通过地址栏输入、点击链接（<router-link to="/milk-tea">）访问；
+                        是 Vue Router 的核心 —— 它的本质就是「URL 路径 → 组件」的映射器，path 是这个映射的「键」，没有 path 就无法建立「用户操作」和「组件渲染」的关联。
+                        这里的path在符合规范的情况下可以自定义，比如 /home、/my-milk-tea 等等，只要不和其他路由冲突即可，与组件的文件路径和名字无关.
+        组件存放目录问题(组件分类)：
+            1.放在components目录下的组件：一般是一些通用的组件，比如头部，底部，导航栏等，这些组件一般不会单独作为路由组件使用，而是作为其他组件的子组件使用
+            2.放在views目录下的组件：一般是路由组件，就是通过路由切换显示的组件，这些组件一般是页面级别的组件，是用户直接访问的入口组件
+
+    
+
+
+    -->
+</body>
+
+</html>

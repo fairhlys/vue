@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <!-- 
+    1. Promise 的本质
+        Promise 是一个对象，代表一个异步操作的最终完成或失败。
+        它只是一个“容器 + 状态机”，用来可靠地把异步结果传递给后续代码。
+    状态            含义                是否可变,伴随数据
+    pending         初始状态           还没结果,可以变,无
+    fulfilled       操作成功           已完成,永久锁定,value（结果）
+    rejected        操作失败           已拒绝,永久锁定,reason（通常是 Error）
+
+    2. Promise 构造函数的核心真相
+        new Promise((resolve, reject) => {
+      // ← 这个函数叫 executor，特点：
+      // 1. 同步立即执行！（不是等会儿执行）
+      // 2. 状态由 executor 里是否调用 resolve/reject 决定
+    })
+        pending ≠ “executor 还没执行完”
+        pending = “还没有调用 resolve 或 reject”
+        一旦调用了 resolve/reject（或 executor 抛错），状态立刻永久改变
+    3.pending 的几种真实情况
+            场景                                  状态变化时                    说明
+        executor 里什么都不做                    永远 pending               没人调用 resolve/reject
+        executor 里同步 resolve                 创建瞬间 fulfilled          常见于缓存、同步校验
+        executor 里 setTimeout + resolve        异步完成后 fulfilled        最常见异步场景
+        executor 里 throw new Error()           创建瞬间 rejected           同步错误自动变成 reject
+    4.resolve / reject 的关键规则
+        1.第一次调用才有效，后续调用全部忽略
+            resolve('ok')
+            resolve('又调用') // 无视！
+            reject('错误') // 也无视！状态已经锁定
+        2.resolve 一个 Promise → 会“穿透”到外层
+            p1 = new Promise(r => setTimeout(() => r('成功'), 1000))
+            const p2 = new Promise(r => r(p1)) // p2 会等 p1 完成
+        3.reject 通常传 Error 对象（最佳实践）
+            reject(new Error('网络超时'))
+    5.常见误区：
+    错误理解                                    正确理解
+    pending 是因为回调还没执行完                pending 是因为还没调用 resolve/reject
+    executor 是异步执行的                       executor 是同步立即执行的
+    调用了 resolve 后还能再 reject,不行         状态一旦改变就永久锁定
+    Promise 的状态取决于异步任务是否完成        状态只取决于 resolve/reject 是否被调用
+
+极其重要；
+    async 函数返回的 Promise（async函数会返回promise对象，对于外部来说，整个async函数无论内部如何，其在外部表现都是调用，然后返回一个promise对象）
+        只要函数正常结束（不管有没有 return），返回的都是 fulfilled 状态的 Promise
+        有 return → value = return 的值
+        无 return → value = undefined
+    只要函数内部 throw（同步或 await reject），返回 rejected 状态的 Promise，reason = 抛出的错误
+    
+    await 的执行模型
+        1.求值 expr：先计算 expr 的值，必须是一个 Promise（或能被转成 Promise 的值，如普通值自动 Promise.resolve()）。
+        2.暂停当前 async 函数：如果这个 Promise 是 pending 状态，暂停执行，把 await 后面的代码块（直到下一个 await 或函数结束）包装成一个微任务，放入微任务队列，让出控制权给事件循环。
+        3.等待 Promise 落定：
+            1.如果 Promise fulfilled（resolved）：
+                执行那个微任务。
+                把 resolve 传递的值（value）赋给 await 左边的变量（例如 const result = await expr 中的 result）。
+                继续执行 await 后面的代码。
+            2.如果 Promise rejected：
+                在 await 位置相当于 throw reason（错误原因）。
+                后续代码不执行（可被 try…catch 捕获）。
+        4.如果 Promise 已经是 fulfilled：整个过程同步完成，不产生微任务，直接拿值继续执行。
+    
+    多个 await 的串行关系
+    在同一个 async 函数里，后面的 await 必须等前面的 await 对应的 Promise fulfilled 后，它的后续代码才有机会运行。
+    所以多个 await 是顺序执行的，而不是并发。函数)微任务队列
+
+
+
+    1.事件循环最核心的几句话（请背下来）
+        JavaScript 是单线程的（同一时间只能执行一段代码）
+        但它能处理大量异步操作，靠的不是多线程，而是事件循环 + 任务队列
+        事件循环的本质就是一个无限循环，不停地从队列里取出任务执行
+
+    1.事件循环的执行顺序（最重要！）
+        每一次循环（tick）都严格按照这个顺序：
+            1.执行调用栈（Call Stack）里的同步代码（直到栈清空）
+            2.清空当前所有微任务（Microtask Queue）→ 一口气执行完所有 .then / await 后续 / queueMicrotask
+            3.取出一个宏任务执行（Macrotask Queue 头部）
+            4.渲染更新（浏览器中，如果有必要）
+            5.回到第 1 步，进入下一轮循环
+    一句话总结优先级：
+    同步代码 > 微任务 > 宏任务 > 渲染 > 下一轮宏任务
+
+    -->
+
+
+
+</body>
+
+</html>

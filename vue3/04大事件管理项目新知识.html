@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <!-- 
+    pnpm包管理器：
+        速度快，节省磁盘空间
+        安装方式：npm i -g pnpm
+        创建项目（不要在磁盘根目录建）：
+            pnpm create vue
+        安装依赖：
+            pnpm i
+        安装（包）axios：
+            pnpm add axios
+        删除axios:
+            pnpm remove axios
+        执行：
+            pnpm dev
+    prettier:代码格式化
+        eslint是代码规范书写
+        prettier是代码格式化，美化
+        注意禁用prettier插件
+    Linter (错误预防) → 这实际上就是启用 ESLint（代码质量检查 + 错误预防规则）。
+    Prettier (代码格式化) → 这是独立的格式化工具，通常和 Linter 一起选。
+
+    禁用格式化插件prettier format on save关闭
+    安装Eslint插件,并配置保存时自动修复
+
+    提交前做代码检查：
+        1.初始化git仓库，执行git init
+        2.初始化husky工具配置，执行pnpm dlv husky-init && pnpm install
+        3.修改.husky/pre-commit文件
+            将 npm test改为 pnpm lint(全量检查)
+        4.暂存区eslint检验：
+            1.安装lint-staged包
+            pnpm i lint-staged -D
+            2.package.json配置lint-staged命令
+            3..husky/pre-commit文件修改
+
+    目录调整；
+        1.删除一些初始化文件
+        2.修改剩余代码内容
+        3.新增调整我们需要的目录结构
+        4.拷贝全局样式和图片，安装预处理器支持
+    
+    路由初始化；
+        在vue3中稍微有变化；
+        和app和pinia一样
+        import { createRouter, createWebHistory } from 'vue-router'
+
+        createWebHistory与createHashHistory配置模式：
+            history:createWebHistory(参数是基础路径，默认是/)
+        在vue3 composition api中，如果要
+        1.获取路由对象router，useRouter()
+            const router = useRouter()
+        2.获取路由参数route，useRoute()
+            const route = useRoute()
+
+        history: createWebHistory(import.meta.env.BASE_URL(vite的环境变量，路由的基础地址))
+    
+    element-plus组件库：
+            按照文档做，但是不需要像vant那样挨个导入组件，而是直接用组件
+            安装了它所需的插件之后，连组件使用子组件都不需要导入（默认components下的文件也会被自动注册）
+            Element Plus（尤其是 Vue 3 + Vite 项目）在按需导入时，不会自动引入全局样式，你需要额外处理样式导入
+            除了那两个插件，还要：
+            pnpm add -D unplugin-element-plus
+            完整的vite.connfig.js:
+                // vite.config.ts
+                import { fileURLToPath, URL } from 'node:url'
+                import { defineConfig } from 'vite'
+                import vue from '@vitejs/plugin-vue'
+                import vueDevTools from 'vite-plugin-vue-devtools'
+                import AutoImport from 'unplugin-auto-import/vite'
+                import Components from 'unplugin-vue-components/vite'
+                import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+                import ElementPlus from 'unplugin-element-plus/vite'  // ← 新增这一行
+
+                export default defineConfig({
+                  plugins: [
+                    vue(),
+                    vueDevTools(),
+                    ElementPlus({}),  // ← 加这里，默认就注入 css，按需加载
+                    // 如果你想用 sass 源码（后续自定义主题时有用），可以改成：
+                    // ElementPlus({ useSource: true }),
+
+                    AutoImport({
+                      imports: ['vue'],
+                      resolvers: [
+                        ElementPlusResolver(),  // 自动 import ElMessage / ElNotification 等
+                      ],
+                    }),
+                    Components({
+                      resolvers: [
+                        ElementPlusResolver({
+                          // 可以保留或删除 importStyle: 'sass'，因为 unplugin-element-plus 会接管
+                          // importStyle: 'sass',
+                        }),
+                      ],
+                    }),
+                  ],
+                  resolve: {
+                    alias: {
+                      '@': fileURLToPath(new URL('./src', import.meta.url))
+                    },
+                  },
+                })
+            此后在组件和js代码中使用就不需要引入了，但是为了eslint规范不报错，在eslint文件中
+                // ─────────────── 新增这一块 ───────────────
+                {
+                    name: 'app/disable-no-undef-for-auto-import',
+                    rules: {
+                    'no-undef': 'off',   // 关闭 no-undef（最简单，推荐）
+                    // 或者更精细，只关闭在 .vue 文件里（保留在纯 .js/.ts 里的检查）
+                    // 'no-undef': ['error', { varsIgnorePattern: '^El[A-Z]' }] // 只忽略 El 开头的
+                    },
+                }
+            1.校验相关：
+                el-form => :model='formModel'绑定的是整个form的数据对象
+                           :rules='rules'   绑定的是整个rules规则对象 和:model一样写在整个表单域el-form
+                 el-form-item => prop='name' 配置生效的是哪个校验规则(这个name的规则在rules里面配置) 这个表单的一行包含着表单元素
+                 表单元素： v-model= formModel.name 绑定form数据对象的某个子属性,
+                 在scipt中配置formModel和rules
+                 1.非空校验：
+                    required：true
+                 2.长度校验：
+                    min: ,max: 
+                 3.正则校验：
+                    pattern:正则规则
+                 4.自定义校验(自己写校验逻辑)
+                validator: (rule, value, callback) => {
+                    rule:当前校验规则相关的信息
+                    value：所校验的表单元素目前的表单值
+                    callback：1.直接callback() 代表校验成功
+                              2.callback(new error(错误信息)) 代表校验失败
+                    无论成功还是失败都会callback
+                }
+                validator: (rule, value, callback) => {
+                  if (value !== formModel.value.password) {
+                    callback(new Error('两次输入的密码不一致'))
+                 } else {
+                    callback() //校验成功也要callback
+                 }
+                }
+                
+            el-menu:整个菜单组件
+                 :default-active:"$route.path" 配置默认高亮的菜单项(每一个路由对应一个菜单项，$route.path对应着当前的路由项也就是菜单项)
+                 router:router选项开启，el-menu-item的index就是点击跳转的路由路径
+
+        
+    pinia构建仓库和持久化
+            pinia独立维护:
+            就是将pinia实例的创建和拆建的使用放在stores里面的index.js文件中
+            pinia的统一导出：
+            export * from '@/stores/modules/user'同样放在index.js中
+            使用的时候，那就是在相应的组件内导入import { } from './stores'
+        
+    请求工具相关
+            axios配置：
+                1.创建axios实例：基准地址，超时时间
+                2.请求拦截器：携带token
+                3.响应拦截器：业务失败处理，摘取核心响应数据，401处理
+              这个一般封装在utils的request.js中
+              主要看axios文档
+              在任何文件内要使用stores的数据，由于已经统一导出了，那么直接导入对应的仓库就行
+              import { useUserStore } from '@/stores'
+    对于路由的配置，要明白所有的页面都只是在views里面，app.vue不过是个vue实例，用来作为包含这些页面的壳子，因此需要两个router-view
+ 
+    特性                export (命名导出)                                   export default (默认导出)
+    导出数量            可以同时导出多个                                    每个模块只能有一个默认导出
+    导出时是否需要名字  必须有名字（变量、函数、类等）                      不需要名字（可以是匿名函数、表达式等）
+    导入时写法          必须使用大括号 {} 并写相同名字                      可以自定义名字，不用大括号
+    导入时是否可以改名  可以用 as 改名                                      直接写新名字即可
+    典型使用场景        导出多个工具函数、常量、配置、多个类/组件等          导出模块的主要功能（唯一主角）
+    代码风格暗示        “这个模块提供了好几个东西”                          “这个模块的核心就是这个东西”
+
+    全局路由守卫
+        vue3中默认是放行的，根据返回值判断是否放行
+        返回值：
+            1.undefined / true :直接放行
+            2.false 拦截回from的路径
+            3.具体路径 或  路径对象 拦截到对应的地址
+            router.beforeEach( async (to, from) => {
+            const useStore = useUserStore()
+            if (!useStore.token && to.path !== '/login') {
+            return '/login'
+            }
+            return true
+            })
+    在请求拦截器和响应器的loading：
+        Element Plus 提供了 Loading 服务（非指令方式），专门设计用于在非组件上下文中（如 axios 拦截器、工具函数、Pinia action 等）显示 loading 遮罩。
+        推荐实现方式（全局 loading + 防抖/合并请求）：
+            loadingCount：计数器机制，避免多个并发请求导致 loading 频繁闪烁（常见优化）。
+            请求开始 +1，结束 -1，只有计数到 0 时才真正关闭。
+            
+            ElLoading.service(options) 返回一个实例，有 .close() 方法。
+            fullscreen: true：全屏遮罩（最常见）。
+            如果想局部 loading，传 target: document.querySelector('.some-container')。
+            
+            某些请求不显示 loading：在调用 axios 时传 { showLoading: false }：JavaScript
+    empty
+
+    全局配置:
+        在app.vue:
+        import zhCn from 'element-plus/es/locale/lang/zh-cn'
+        <el-config-provider :z-index="zIndex" :size="size" :locale="zhCn">
+            <router-view></router-view>
+        </el-config-provider>
+    
+    upload图片时：
+        需要关闭element-plus的自动上传。不需要配置action的房参数
+        只需要做前端的本地化预览，无需再提交之前上传图片
+        语法：URL.createObjectURL(...)创建本地预览的地址
+    fileReader
+
+    -->
+</body>
+
+</html>

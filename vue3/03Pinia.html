@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- 
+    pinia：
+        是vue的最新的状态管理工具（之前用的是vuex），是vuex的替代品
+        相较于vuex：
+            没有了mutations与modules，只有state，actions，getters
+            pinia中的actions不仅异步同步都支持，而且还可以直接修改state数据
+            pinia去掉了modules的概念，每一个store都是独立的模块，当然也支持store之前的访问
+
+        pinia的配置：
+            1.使用vite创建一个空的vue3项目
+            2.下载pinia
+                npm i pinia
+            3. 导入main.js使用          
+                import { createApp } from 'vue'      
+                import { createPinia } from 'pinia'  
+                import App from './App.vue'         // 导入根组件
+                const pinia = createPinia()         // 创建pinia实例
+                const app = createApp(App)          //创建app实例
+                app.use(pinia)                     // pinia插件的安装配置
+                app.mount('#app')                   //pinia插件的安装配置和视图挂载
+            4.Store是使用defineStore()定义的，并且它需要一个唯一的名称，作为第一个参数传递：
+            import { defineStore } from 'pinia'
+            export const useStore(名称) = defineStore('main'（每一个仓库的唯一标识）, {
+                //其他配置
+            })
+            这个名称(也称为id)是必需的，Pinia使用它来将store连接到devtools。将返回的函数命名为use...是可组合项之间的约定，以使其用法符合使用习惯
+            defineStore() 的第二个参数可接受两类值：Setup 函数或 Option 对象
+                1.当传入options对象：
+                与 Vue 的选项式 API 类似，我们也可以传入一个带有 state、actions 与 getters 属性的 Option 对象
+                export const useCounterStore = defineStore('counter', {
+                  state: () => ({ count: 0, name: 'Eduardo' }),
+                  getters: {
+                    doubleCount: (state) => state.count * 2,
+                  },
+                  actions: {
+                    increment() {
+                      this.count++ // 访问state的数据，这里的this直接指代state
+                    },
+                  },
+                })
+                2.当传入的是setup函数：
+                与 Vue 组合式 API 的 setup 函数 相似，我们可以传入一个函数，该函数定义了一些响应式属性和方法，并且返回一个带有我们想暴露出去的属性和方法的对象。
+                export const useCounterStore = defineStore('counter', () => {
+                  const count = ref(0)
+                  const name = ref('Eduardo')
+                  const doubleCount = computed(() => count.value * 2)
+                  function increment() {
+                  count.value++
+                  }
+                  
+                  return { count, name, doubleCount, increment } //这里暴露数据和方法
+                })
+                在 Setup Store 中：
+                  ref() 就是 state 属性
+                  computed() 就是 getters
+                  function() 就是 actions
+                  export导出的是一个函数，在组件内引入该函数，使用该函数则会返回一个reactive对象（该对象不能被解构,解构后的数据丢失了响应式），这个对象包含着store中return的属性和方法,计算属性在store中用computed
+                注意：要让 pinia 正确识别 state，你必须在 setup store 中返回 state 的所有属性。这意味着，你不能在 store 中使用私有属性。不完整返回会影响 SSR ，开发工具和其他插件的正常运行。
+            
+              pinia的action异步实现
+                编写方式：异步action函数的写法和组件中获取异步数据的写法完全一致
+                定义异步函数然后导出(前提要导入axios)
+                  const syncActions = async () => {
+                      const res = await axios.get('')
+                  }
+                  return { syncActions }
+                  
+              保证store的导出的函数解构不丢失响应式，则在调用函数前加上storeToRefs(函数)，当只使用store的属性而不使用方法时，storeToRefs很有作用
+              storeToRefs() 的主要目的是：把 store 里的 state 和 getters（响应式属性）转为独立的 ref，让你解构后仍然保持响应式。因此它不可以解构出方法
+
+              响应式的原理是对proxy封装的对象进行监听，当你从reactive对象解构出属性，那属性就脱离了对象，失去了监听即响应式，但是方法可以解构
+  
+          pinia的调试
+
+          pinia的持久化插件
+            对pinia数据的本地持久化
+            pinia-plugin-persistedstate
+            下载：
+              npm i pinia-plugin-persistedstate
+            在main.js中导入插件:
+              import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+            pinia实例挂载插件
+              const pinia = createPinia()
+              pinia.use(piniaPluginPersistedstate)
+            用法：
+              在store中，在defineStore函数的第三个参数中：
+              {
+                persist: true
+              }
+              这样，该store的数据就本地持久化存储了(该仓库数据更新就会存在本地，刷新页面优先使用该仓库的本地数据)
+              可以在persist中进行配置：
+                该插件预配置了以下内容：
+                  localStorage 作为存储。
+                  store.$id 作为存储的默认 key。
+                  JSON.stringify/destr 作为序列化器/反序列化器。
+                  默认对整个state都作持久化
+                  整个状态将持久化到存储中。
+              查该插件文档即可
+
+
+ 
+ 
+    
+    -->
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    .box {
+        display: flex;
+        height: 100px;
+        width: 100px;
+        border: 1px solid black;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .big {
+        height: 200px;
+        width: 200px;
+    }
+
+    .back {
+        background-color: pink;
+    }
+</style>
+
+<body>
+    <!-- 
+    1.指令修饰符：
+        通过"."指明一些指令后缀，不同后缀封装了不同的处理操作 ->简化代码
+        指令（含修饰符）只有写在 Vue 实例管辖的 DOM 范围内才会生效，写在外部的元素上完全无效。
+        Vue 只编译「挂载节点内部」的 DOM
+        1.按键修饰符
+            比如：@keyup.enter ->键盘回车监听 enter就是回车键
+            注意：加入在input表单元素里面添加这个，那么只有聚焦在该表单元素的时候enter才会触发监听
+            @keyup.enter 绑定在表单元素上时，必须该元素获得焦点才会触发，这是原生键盘事件的规则；
+
+        2.v-model修饰符
+            v-model.trim number：去首尾空格/转数字
+        3.事件修饰符
+            @事件名.stop='触发程序':阻止事件冒泡。写在儿子里面
+            @事件名.prevent:阻止默认事件
+    2。v-bind对于样式控制的增强
+        为了方便开发者进行样式控制，vue扩展了v-bind的语法，可以针对class类名和style行内样式进行控制
+        1.操作class：
+            语法： :class='对象/数组'，当然，这些类必须提前写好在css或者style里面
+            1.对象形：
+              <div class="box" :class="{类名1:布尔值,类名2:布尔值}"  ></div>
+              当布尔值为true，添加该类，false，不添加该类
+              使用于一个类名，来回切换
+            2.数组形：
+            数组中的所有类，都会添加到盒子上，本质上就是一个class列表
+            <div class="box"  :class="['类名1','类名2','类名3']"></div>
+            使用于多个类的批量添加和删除
+
+            注意：数组形类名要加引号，对象形的不用，单总体的对象和数组都要引号
+        2.操作style：
+            语法： :style='样式对象'
+                <div class="box" :style="{css属性名1:'属性值',css属性名2:'属性值'}" id="box">黑色字体</div>
+                注意：在vue这里  css属性名1:'属性值',css属性名2:'属性值'  就是按照js处理的，因此属性值需要加上引号，同样的，像font-size这样的
+                也要像js那样写，比如fontSize
+    3。v-model应用于其他表单元素(具体看03.html)
+        常见的表单元素都可以用v-model绑定关联 ->快速获取或设置表单元素的值
+        输入框：input        value
+        文本域：textarea     value
+        复选框：checkbox     checked 绑定的是布尔值的变量
+        单选框：input:radio  绑定的是name属性，因为radio靠name分组，变量绑定name属性，而控制则是靠变量
+                                    的取值等于value的值来控制：
+                                    <input v-model="gender" type="radio" name="gender" value="0">男
+                                    <input v-model="gender" type="radio" name="gender" value="1">女
+                                    其中data里面的gender通过等于0或者1来选中男还是女
+        下拉菜单：selection  value   
+        总而言之，v-value默认绑定value值
+    4.计算属性：
+        基于现有的数据，计算出来的新属性。依赖的数据变化，自动重新计算
+        computed 本质是「响应式属性」，而非「方法」
+        语法：
+            1.声明在computed配置项中，一个计算属性对应一个函数
+            2.使用起来和普通属性一样使用{{计算属性名}},不能加上 ()
+
+            这里的computed和data是一个级别的，computed下的各个函数只能相当于data下的属性一样使用。
+            在各个函数中用return来返回求得的值
+
+            计算属性本来是不能传参的，但是可以根据以下方法传参：
+                computed: {
+                // 计算属性返回一个内部函数（接收参数）
+                multiply() {
+                // 内部函数可以接收参数 n
+                return (n) => {
+                return this.num * n;
+                };
+            }
+    computed属性与methods方法：
+        computed计算属性：
+            封装了一段对于数据的处理，求得一个结果
+            1.写在computed配置项中
+            2.作为属性，直接使用，在其他配置项中也可以 this.计算属性名 调用，在普通元素中{{计算属性名}}调用
+            计算属性：有缓存的，计算出结果后缓存结果，下次调用时，直接使用缓存的结果，除非数据变了，需要重新计算
+        methods；
+            给实例提供一个可调用的方法，处理业务逻辑
+            1.写在methods配置项中
+            2.作为方法，需要调用，在其他配置项中，则是this.方法名()进行调用，在元素中则是{{方法名()}}或者有时候 @事件命 ='方法名()' 
+    计算属性的完整写法：
+        按照computed: {
+            totalCount() {
+            let total = this.list.reduce((sum, ele) => sum += ele.num, 0)
+            return total
+            }
+        }这样的写法，只能读取访问，不能修改
+        完整写法：
+            computed:{
+            计算属性名:{
+                get(){
+                    let name = firstname + lastname
+                    return name
+                },
+                set(想要修改成的值value){
+                假如这里的值为要修改之后的name，记作value
+                firstname=value.slice(0,1);取value的第一个字符
+                lastname= value.slice(1);取value第二个字符及以后
+                }
+             }
+            }
+             当执行{{计算属性名}}的时候会执行get
+             当执行this.计算属性名  = value时，会执行set
+
+            注意：合法性：v-model 可以绑定 computed（合法），但必须给 computed 配置 getter + setter（支持双向读写）；仅写 getter 的 computed 无法绑定 v-model（会报错）；
+            常规绑定 data 的原因：data 里的属性天然支持读写，写法简单，适合独立状态；
+            全选场景最佳实践：绑定带 get/set 的 computed，自动同步全选框和子项的选中状态，无需手动维护。
+
+
+    watch侦听器（监视器）
+        监视数据变化，执行一些业务逻辑 或 异步操作
+        冒号前的data属性或者对象：是「要监听的目标属性名」（Vue 识别的配置键），不需要加 this；
+        handler 函数或者简单写法的函数里的 data属性名或者对象：是「访问实例上的 data 属性」，必须加 this。
+        语法：
+            1.简单写法：简单类型数据，直接监视、
+                watch:{
+                    数据data属性名 (newValue,oldValue){
+                    一些业务逻辑 或 异步操作
+                    //该方法会在属性名的值变化时立马触发,这个倒不用this
+                    },
+
+                    'data里的对象.属性名'(newValue,oldValue){
+                    一些业务逻辑 或 异步操作
+                    //该方法会在属性名的值变化时立马触发，这个倒不用this，但是要加上引号
+                    }
+                }
+            2.完整写法：添加额外配置项
+                1.deep:true 对复杂类型深度监视,也就是对象里面的所有属性，此时的newValue就会变成一整个对象
+                    watch:{
+                      data对象名:{
+                        deep:true,
+                        handler(newValue){
+                         //处理逻辑
+                        },
+                        immediate:true;
+                      }
+                    }
+                2.immediate:true 初始化立刻执行一次handler方法
+             
+
+
+
+                
+    
+    -->
+    <!-- <div class="box" :class="{big:true,back:true}" id="box">黑色字体</div> -->
+    <div class="box" :class="['big','back']" :style="{fontSize:'40px',width:'400px'}" id="box">黑色字体{{totalCount}}</div>
+</body>
+<script src="../vue.js"></script>
+<script>
+    const box = new Vue({
+        el: '#box',
+        data: {
+            list: [{ num: 1 }, { num: 2 }, { num: 3 }]
+        },
+        computed: {
+            totalCount() {
+                let total = this.list.reduce((sum, ele) => sum += ele.num, 0)
+                return total
+            }
+        },
+        watch: {
+
+        }
+    })
+</script>
+
+</html>

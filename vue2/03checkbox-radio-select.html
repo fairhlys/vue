@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <!-- 
+    1. checkbox（复选框）
+        （1）name/value 作用
+            name：分组（同 name 视为一组，仅表单提交时有用）； 表单提交时，作为「键名」，选中的复选框 value 会以 name=value1&name=value2 形式提交；
+            value：每个复选框的「选中值」，选中则携带该值。
+        （2）v-model 绑定规则
+        多选型（常用）：绑定到「数组」，数组元素为选中的 checkbox 的 value；
+            v-model=[value1,value2]
+        单选型（特殊）：单个 checkbox 可绑定「布尔值」（true 选中，false 未选中）。
+            v-model=is;
+            is=true/false
+    2. radio（单选框）
+        （1）name/value 作用
+            name：核心作用是分组，同 name 的 radio 强制互斥（仅能选一个）；表单提交时作为「键名」，携带选中项的 value；
+            value：每个单选框的「唯一标识值」,选中则携带该值。
+        （2）v-model 绑定规则
+        绑定到「字符串 / 数字」（单个值），v-model 的值等于某个 radio 的 value 时，该 radio 被选中；
+        若想默认选中某一项，只需将 v-model 初始值设为对应 radio 的 value。
+    3. select（下拉选择框）
+        （1）name/value 作用
+             name：表单提交时的「键名」，携带选中项的 value；
+             value：<option> 的 value 属性是选中值，若未设置 <option> 的 value，默认取 <option> 的文本内容（如 <option>北京</option> → value 为 "北京"）。
+        （2）v-model 绑定规则
+        单选 select（默认）：绑定到「字符串 / 数字」，v-model 值等于 <option> 的 value 时，该 option 被选中；
+        多选 select（加 multiple 属性）：绑定到「数组」，选中的 option 的 value 会加入数组；
+        默认值：单选默认 ""，多选默认 []；想默认选中，只需将 v-model 初始值设为对应 option 的 value（多选则设为包含多个 value 的数组）。
+    
+    
+    -->
+</body>
+
+</html>

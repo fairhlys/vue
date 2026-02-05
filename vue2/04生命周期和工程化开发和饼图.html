@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    button {
+        display: inline-block;
+        height: 60px;
+        width: 60px;
+        text-align: center;
+    }
+
+    h1 {
+        width: 200px;
+        margin-left: 50px;
+    }
+</style>
+
+<body>
+    <!-- 
+    生命周期：
+        Vue生命周期和生命周期的四个阶段
+            发送初始化渲染请求越早越好，且在渲染完整之后再进行dom操作
+        VUE生命周期：一个vue实例从创建到销毁的整个过程
+            四个阶段：
+            1.创建 将data里面的数据转换为响应式数据
+            2.挂载 渲染模板，将响应式数据渲染在元素中
+            3.更新 数据修改，更新视图（执行多次，数据修改和视图更新交替循环）
+            4.销毁 销毁阶段，关闭页面
+        因此发送初始化请求应该在创建阶段的最后，操作dom要在挂载阶段结束之后
+
+        VUE生命周期函数（钩子函数）：
+            vue生命周期过程中，会自动运行一些函数，称为生命周期钩子，可以让开发者在特定阶段运行自己的代码
+        
+        1.创建阶段：
+            创建开始：beforeCreate() 
+                Vue 实例刚被初始化（new Vue () 后），但 data、methods、computed 等配置项还未被挂载到实例上。
+            创建结束：created()  发送初始化请求，得到数据存回响应式数据
+                Vue 实例已完成 data、methods、computed、watch 的初始化（响应式化），但 DOM 还未生成（el 挂载节点还未被编译）。
+        2.挂载阶段：
+            挂载开始:beforeMount() 此时vue实例的数据还没渲染上去
+                Vue 已编译模板（生成虚拟 DOM），但还未将虚拟 DOM 渲染为真实 DOM，$el 已存在但未挂载到页面。
+            挂载结束：mounted() 操作dom元素，vue实例的数据渲染完成
+                Vue 已将虚拟 DOM 渲染为真实 DOM，挂载到 el 节点，页面上能看到渲染后的内容。
+        3.更新阶段：
+            更新开始:beforeUpdate()
+                数据已变化，Vue 即将重新渲染 DOM，但真实 DOM 还未更新（页面显示的还是旧数据）。
+            更新结束:updated()
+                Vue 已完成 DOM 重新渲染，页面显示最新数据。
+        4.销毁阶段:
+            销毁开始:beforeDestory() 清除资源
+                Vue 实例即将被销毁，但实例的所有功能（data/methods/DOM）仍可用。 清除一些vue以外的资源，比如定时器，延时器
+            销毁结束 ：destoryed()
+                Vue 实例已完全销毁，响应式绑定、事件监听、DOM 关联全部解除。
+    饼图：
+        1.引入饼图js
+        <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.0/dist/echarts.min.js"></script>
+        2.初始化饼图
+        在绘图前我们需要为 ECharts 准备一个定义了高宽的 DOM 容器。在刚才的例子 </head> 之后，添加：
+        <body>
+            为 ECharts 准备一个定义了宽高的 DOM 
+            <div id="main" style="width: 600px;height:400px;"></div>
+            然后就可以通过 echarts.init 方法初始化一个 echarts 实例并通过 setOption 方法生成一个简单的柱状图，下面是完整代码。
+            <script type="text/javascript">
+                  // 基于准备好的dom，初始化echarts实例，因此在mounted的阶段
+                  var myChart = echarts.init(document.getElementById('main'));
+            
+                  // 指定图表的配置项和数据
+                  var option = {
+                    title: {
+                      text: 'ECharts 入门示例'
+                    },
+                    tooltip: {},
+                    legend: {
+                      data: ['销量']
+                    },
+                    xAxis: {
+                      data: ['衬衫', '羊毛衫', '雪纺衫', '裤子', '高跟鞋', '袜子']
+                    },
+                    yAxis: {},
+                    series: [
+                      {
+                        name: '销量',
+                        type: 'bar',
+                        data: [5, 20, 36, 10, 10, 20]
+                      }
+                    ]
+                  };
+            
+                  // 使用刚指定的配置项和数据显示图表。
+                  myChart.setOption(option);
+                </script>
+        </body>
+        3.根据数据实时更新饼图
+
+    工程化开发 & 脚手架 VUE CIL：
+        开发vue的两种方式:
+        1.核心包传统开发模式：基于html，css，js文件，直接引入核心包，开发vue
+        2.工程化开发模式：基于构建工具(例如：webpack)的环境中开发vue
+        基本介绍：
+         Vue CIL是Vue官方提供的一个全局命令工具
+         可以帮助我们快速创建一个开发Vue项目的标准化基础架子，集成了webpack配置
+        
+         创建项目架子：
+            vue create project-name(不能有中文)
+         启动项目：
+            npm run serve
+        
+        组件化开发 & 根组件
+        1.组件化：一个页面可以拆分成一个个组件，每个组件有着自己独立的结构，样式，行为。
+            好处：便于维护，利于复用 ->提升开发效率
+            组件分类：普通组件，根组件
+        2.根组件：整个应用最上层的组件，包裹所有普通小组件
+
+        App.vue文件(单文件组件)的三个组成部分(根组件)：
+            1.template:html  结构，有且只能有一个根元素
+            2.script     js逻辑
+            3.style     样式（可支持less，需要装包）
+          让组件支持less:
+            1.style标签,lang='less'开启less功能
+            2.装包：npm i add less less-loader
+        普通组件的注册使用：
+            组件注册的两种方式：
+                1.局部注册：只能在注册的组件内使用
+                    1.创建.vue文件(三个组成部分) 存在components 
+                    2.在使用的组件内导入并注册
+                       导入： import 组件对象 from 路径
+
+                       局部注册：
+                           export default{
+                        components: {
+                        '组件名':组件对象,
+                        HmHeader:HmHeader
+                        }
+                    }
+                       使用：
+                            当成html标签使用 `<组件名></组件名>`
+                       注意:
+                            组件名规范 ->大驼峰命名法 如：HmHeader 开头首字母必须大写
+                2.全局注册：所有组件内都能使用
+                    1.创建.vue文件(三个组成部分) 同样放在components
+                    2.main.js中进行全局注册
+                        导入；
+                            import 组件名 from '路径'
+                        注册
+                         Vue.component('注册后自定义的名字',组件名)
+                          一次只能注册一个全局组件
+                        使用：
+                        当成html标签使用 `<组件名></组件名>`
+
+            一个组件的data选项必须是一个函数：
+                保证每一个组件实例，维护独立的一份数据对象 ：
+                data(){
+                  return {
+                    count:100
+                   }
+                }
+                依旧是写在export default里面，使用时和之前vue实例里面的使用并无差别
+
+            注意
+            1.一个vue实例的各个组件中，如果要特定的vue实例里面的methods，data，components之类的
+                就在export default里面直接写就行了，当然此时的这些methods,data,components都是专门的使用
+
+
+            2.Vue 单文件组件（.vue）本身就是一个「组件模块」，
+                不需要通过 new Vue() 创建新实例（new Vue() 是用来创建整个应用的根实例，通常写在 main.js 里）
+                Vue 单文件组件的方法 / 数据必须写在组件的 export default 配置里，才能被模板调用；new Vue() 仅用于创建应用根实例，不写在组件内。
+
+            3.new Vue() 是「创建整个应用」，.vue 组件是「应用里的一个零件」，零件里不需要再创建新的应用实例。
+
+            4.Vue 2 要求组件模板必须有且只有一个根元素，多个同级元素 / 纯文本会触发编译错误
+                    
+
+            5.export default 表示「给当前模块设置一个 “默认导出项”」：
+                一个文件（模块）只能有一个 export default；
+                不管导出的是对象、函数、数字、空对象，都是合法的；
+                import 时可以用任意名称接收这个默认导出项（这也是你之前问的 “导入名不用和文件名一致” 的底层原因）。
+            6.export default {} 只是「覆盖 / 补充」Vue 的默认选项，而非「定义整个组件」—— 哪怕你什么都不补充，Vue 也会用默认值凑出一个合法的组件。
+
+            7.import HmHeader from './components/HmHeader.vue' 中的 HmHeader
+                这是「模块导入别名」，本质是局部变量名，作用是在当前文件中引用导入的组件模块，和文件名（HmHeader.vue）完全无关：
+                你可以给它起任意合法的变量名（比如 MyHeader、header）；
+                唯一要求：符合 JavaScript 变量命名规则（不能以数字开头、不能含特殊字符等）。
+
+            8.components: { HmHeader: HmHeader } 中的名称
+                冒号左边的 HmHeader：是「组件注册名」，作用是在当前组件的模板中使用这个组件（比如
+                <HmHeader />）；
+                冒号右边的 HmHeader：是上面 import 定义的局部变量名（指向导入的组件模块）；
+                两者的关系是 “键值对”：注册名: 组件模块，只要键值对应，注册名可以自定义。
+
+            9. 组件的样式冲突scoped:
+                默认情况：写在组件中的样式会全局生效 ->容易造成多个组件之间的冲突
+                1.全局样式：默认组件中的样式会作用到全局
+                    整个页面的所有 DOM 元素（包括所有组件：根组件、子组件、孙子组件，甚至页面原生 DOM）
+                2.局部样式：可以给组件加上scoped属性，可以让样式只作用于当前组件
+                原理：
+                scoped 是 Vue 给组件样式加的 “隔离罩”，原理很简单：
+                    Vue 会给当前组件内的所有 HTML 元素自动添加一个唯一的自定义属性（比如 data-v-123456）；
+                    同时把组件内的样式选择器编译成「类名 + 自定义属性」的组合（比如 .main → .main[data-v-123456]）；
+                    这样样式只会匹配当前组件内带这个属性的元素，完全不会影响外部，也不会被外部影响。
+
+            10.顶级作用域：在 export default {} 这个组件配置对象里，直接写在大括号内、但不在任何函数（方法 / 钩子 /data 函数）内部的区域，
+                就是组件配置的「顶级作用域」 —— 简单说，就是 “配置对象的最外层”，不是任何嵌套函数的内部。
+            Vue 解析组件时，会先执行 export default 顶级作用域的代码，再创建组件实例、初始化 data/methods 等。
+                顶级作用域代码执行时，组件实例还没创建，this 不指向组件实例（浏览器环境下 this 指向 window，严格模式下是 undefined）；
+                此时哪怕写 this.msg，msg 还没被初始化，必然是 undefined 或报错。
+
+            11.每个 .vue 组件（包括所有子组件、孙子组件）都有自己独立的 Vue 实例（严格来说是 VueComponent 实例，继承自 Vue 根实例），
+                根组件的实例只是整个应用的「入口实例」，而非唯一实例。
+
+            12.<script> 内 export default 之外的代码：
+                执行时机：组件模块被加载 / 导入时执行（早于组件实例创建，且仅执行一次，哪怕组件被渲染多次）；
+                作用域：仅限当前 .vue 文件（模块私有），不会污染全局或其他组件；
+                核心用途：定义组件的辅助逻辑（常量、工具函数、外部模块处理、数据预处理等），为 export default 里的组件配置提供支撑。
+            
+            13.export default 本质是一个「Vue 组件配置对象」，对象内部只能写「键值对形式的 Vue 预定义选项」（如 props、created、methods 等），不能直接写独立的执行代码（比如
+               console.log()）；如果只想打印 props 数据，必须把打印逻辑放在 Vue 提供的「实例化钩子函数」（如 created、mounted）中，
+               这些钩子是 Vue 规定的合法配置项，且执行时能访问到 props 和组件实例。
+
+        
+        
+
+
+    
+    -->
+    <div id="app">
+        <h1>计数器</h1>
+        <button @click="count--">--</button>
+        <div>{{count}}</div>
+        <button @click="count++">++</button>
+    </div>
+
+
+
+
+
+</body>
+<script src="../vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data: {
+            count: 100
+        },
+        //创建阶段
+        beforeCreate() {
+            console.log('创建开始', this.count);
+
+        },
+        created() {
+            console.log('创建结束', this.count);
+
+        },
+        beforeMount() {
+            console.log('挂载之前', document.querySelector('#app').innerHTML);
+
+        },
+        mounted() {
+            console.log('挂载之后', document.querySelector('#app').innerHTML);
+
+        },
+        beforeUpdate() {
+            console.log(document.querySelector('#app div').innerHTML, this.count);
+        },
+        updated() {
+            console.log(document.querySelector('#app div').innerHTML, this.count);
+        }
+    })
+</script>
+
+</html>

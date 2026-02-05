@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <!-- 
+    路由进阶：
+        路由的封装抽离：
+          问题：所有的路由配置都堆在main.js中不合适
+          因此要将路由模块抽离出来。
+          将与路由相关的提取到router文件夹中
+          router文件夹中创建index.js文件
+          将路由相关的代码全部写到index.js中
+           比如：
+            import Vue from 'vue'
+            import VueRouter from 'vue-router'
+            import Home from '../components/Home.vue'
+            import About from '../components/About.vue'
+
+            Vue.use(VueRouter)
+
+            const routes = new VueRouter({
+                routes:[{path:'/home',component:Home},{path:'/about',component:About}]
+            })
+            export default router
+            这里的router就是路由实例对象
+            可以用@符号来简化路径，代表着src目录，而且是绝对路径
+            @/components/Home.vue 代表src/components/Home.vue
+
+         然后在main.js中引入路由模块
+         import router from './router'
+
+         Vue-router提供了一个全局组件router-link（取代a标签）
+            <router-link to="/home">Home</router-link>
+            1.能跳转，配置to属性指定路径(必须)。本质上是一个a标签，无需#号
+            2.能高亮，默认给当前路由对应的router-link标签添加两个类router-link-active和router-link-exact-active
+               router-link-active:部分匹配高亮 模糊匹配 可以匹配到子路由
+                  比如：<router-link to="/home">Home</router-link> 会同时匹配到 /home 和 /home/child
+               router-link-exact-active:完全匹配高亮 精确匹配 只能匹配到自己
+                  比如：<router-link to="/home">Home</router-link> 只能匹配到 /home
+            这里的高亮是指选中后的状态
+
+                但是这两个高亮类名太长了，不好看，我们可以修改
+                在创建路由实例对象时，传入linkActiveClass和linkExactActiveClass属性
+                const router = new VueRouter({
+                    routes: [...],
+                    linkActiveClass:'active',
+                    linkExactActiveClass:'exact-active'
+                })这里相当于重命名
+        声明式导航：
+            通过<router-link to="...">实现导航跳转，称为声明式导航
+            跳转传参：在跳转路由时，进行传值
+                1.查询参数传参 适合传递多个参数
+                    1.语法格式如下：
+                        <router-link :to="/path?参数名=值&参数名=值">Home</router-link>
+                        跳转到path路径，并传递参数
+                    2.对应页面组件接受传递过来的参数
+                       在页面中直接用$route.query.参数名
+                       在js中用this.$route.query.参数名
+                2.动态路由传参  适合传递单个参数
+                    1.配置动态路由
+                        routes:[
+                            {
+                                path:'/user/:id',  这里可以匹配/user/001 /user/abc等
+                                component:User
+                            }
+                        ]这里配置的意思是，当你跳转到user组件时，可以给该组件传递一个参数id，参数值可以是任意的
+                    2.配置导航链接
+                        <router-link to="`/user/参数值`">User</router-link>
+                        配置跳转到user组件所要传递的参数值
+                    3.接受传递过来的参数
+                        在页面中直接用$route.params.id
+                        在js中用this.$route.params.id
+                    但是动态路由参数要求必须传递参数，否则路由无法匹配成功，跳转的时候会失败，显示空白
+                    因此可以在路由配置时，给该参数设置一个可选参数，在配置路由时的参数后面加上?号即可:代表可选参数
+        重定向：
+            网页打开时，默认显示的页面是localhost:8080/#/，此时没有任何路由匹配成功
+            因此我们可以配置一个重定向路由，当没有任何路由匹配成功时，自动跳转到指定的路由
+            配置重定向路由：
+                    routes:[
+                    {
+                        path:'/',
+                        redirect:'/home'
+                    }
+                ]
+            这里的意思是，当访问/路径时，自动重定向到/home路径
+            redirect:指定重定向的路径，这里的路径必须是已经配置好的路由路径
+        404：
+            当路径到不到匹配的路由时，显示404页面
+            配置404页面路由：
+                routes:[
+                    { path:'*', component:NotFind }
+                ]
+            配在路由最后，前面的都不命中就命中最后这个路由，显示NotFind组件
+        模式设置：
+            路由的路径看起来不自然，比如localhost:8080/#/home
+            这里的#号看起来不自然，我们可以将其去掉
+            配置路由模式：
+                1.hash路由 (默认)：
+                    localhost:8080/#/home
+                2.history路由：以后上线的时候需要服务器支持
+                    localhost:8080/home
+                    在路由配置中：
+                    const router = new VueRouter({
+                        routes:[...],
+                        mode:'history'
+                    })
+                注意：history模式需要服务器支持，否则会出现404问题
+        编程式导航：
+            通过代码来实现路由跳转，称为编程式导航
+            语法格式：
+                this.$router.push(目标位置)
+            目标位置可以是字符串路径，也可以是一个对象
+            1.字符串路径跳转
+                this.$router.push('/home')  跳转到/home路径
+            2.对象形式跳转
+                this.$router.push({
+                    path:'/home',
+                    query:{id:123}
+                })
+        路由可以取名字：
+            在路由配置时，可以给路由取一个名字
+            routes:[
+                {
+                    path:'/home',
+                    name:'home',
+                    component:Home
+                }
+            ]
+            这里给路由取了一个名字home,这里如果要想传参的话，同样的在path后面加上?号或者用/:id的形式
+            取名字的好处是：当路由路径发生变化时，只需要修改路由配置中的path属性即可，其他地方不需要修改
+        命名路由跳转：
+            1。声明式导航的两种传参方式
+                <router-link :to="{name:'home',query:{id:123}}">Home</router-link>  或者 <router-link :to="/路径?参数名=值">Home</router-link>
+                <router-link :to="{name:'home',params:{id:123}}">Home</router-link> 或者 <router-link :to="`/路径/参数值`">User</router-link> 
+            2.编程式导航的两种传参方式
+                this.$router.push({name:'home',query:{id:123}})  或者 this.$router.push(`/路径?参数名=值`)
+                this.$router.push({name:'home',params:{id:123}}) 或者 this.$router.push(`/路径/参数值`)
+            这里传递了参数，但是配置路由时传参的方式如果是path后面加上?，那么接受参数时还是用$route.query.参数名
+            如果配置路由时传参的方式是/:id，那么接受参数时还是用$route.params.id
+
+        子路由的配置：
+            在routes的配置里面，每个路由的配置里面可以配置children:[
+            里面又是一些routes的配置项，不过不写routes
+            ]
+            1.在children里面配置
+            routes: [
+            { path: '/',
+              component: Layout,
+              children: [
+                { path: '/Article', component: Article },
+                { path: '/Collect', component: Collect },
+                { path: '/Like', component: Like },
+                { path: '/User', component: User },
+              ]
+            },
+            { path: '/Article/Detail', name: 'detail', component: ArticleDetail }
+            ]
+            2.配置路由出口
+                也就是router-view
+
+        是不是子路由不看逻辑上的从属关系，而是当我点击我的子路由时，我会不会跳转到新的页面，如果不跳转才是子路由，如果要
+        跳转到新页面，那就不是子路由
+
+        返回上一页 $router.back() $router.go(-1)
+        $router.push('路由地址') 跳转
+        $router.replace('路由地址') 这里是替换
+
+        组件缓存kepp-alive:
+            从目前页面发送请求，跳转，再返回的时候，会重新发送请求
+            原因：路由跳转后，组件被销毁了，返回回来组件又被重建了，所以数据重新加载了
+            解决：利用keep-alive
+          keep-alive是Vue的内置组件，当它包裹动态组件router-view时，会缓存不活动的组件实例，而不是销毁它们
+          keep-alive是一个抽象组件：它本身不会渲染成一个DOM元素，也不会出现在父组件链中
+            <keep-alive>
+                <router-view>
+            </keep-alive>
+            在组件切换过程中，把切换出去的组件保留在内存中，防止重复渲染DOM
+            减少加载时间及性能消耗
+          但是keep-alive会缓存包裹的所有被切换的组件，导致某些应该不被缓存而该被刷新的没有刷新
+            由此keep-alive有三个属性：
+            1.include：组件名数组，只有匹配的组件会被缓存
+            2.exclude：组件名数组，任何匹配的组件都不会被缓存
+            3.max：最多可以缓存多少组件实例
+          keep-alive的父元素里面 
+                    :include="['组件名']"
+                    :exclude="[]"
+                    :max=
+            被缓存的组件-多两个生命周期钩子：
+                1.actived   激活时，组件被看到时触发
+                2.deactived  失活时，组件看不见时触发
+            一旦组件缓存了，那么离开和进入该组件就不会触发created mounted destroyed的函数钩子了，但是会触发actived deactived
+        
+        router：全局路由控制器（Router 实例），负责跳转、前进、后退、替换历史记录等操作。
+        route：当前路由信息对象（当前 Route 对象），只读的，告诉你现在在哪个页面、带了什么参数
+
+        方面           router                                  route
+        全称           VueRouter实例                          当前路由记录（RouteLocation）
+        作用           进行路由导航和管理                      获取当前路由的详细信息
+        是否可修改     可以调用方法改变路由状态                只读，不能直接改（改了也没用）
+        获取方式       this.$router或useRouter()              this.$route 或 useRoute()
+        常见用法       跳转页面、push/replace/go/back等       读取 path、params、query、meta 等
+        范围           全局（整个应用只有一个）               局部（每个组件里代表当前路由）
+        典型代码       router.push('/home')                   route.params.id 或 route.query
+        
