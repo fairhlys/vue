@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- 
+    Vue 是：
+    批量更新 DOM 的
+    当你改响应式数据：
+    dialogTableVisible.value = true
+    DOM 不会立刻更新。
+    它会：
+    加入更新队列
+    等待当前同步代码执行完
+    再统一更新
+    这叫：
+    异步 DOM 更新机制
+
+
+    tick:
+    在 Vue 里：
+      一次 tick = 一轮“事件循环”中的 DOM 更新周期
+    更通俗一点：
+      你修改响应式数据
+      Vue 不会立刻更新 DOM
+      而是等当前同步代码执行完
+      再统一更新一次 DOM
+      这“统一更新的一次”，就叫：一个 tick
+        tick = 一轮 scheduler 刷新周期
+      包含所有组件的 patch / mount / unmount
+
+
+    
+    第二部分：Vue3 常用的 8 个生命周期
+
+        （严格说 Vue3 不是 8 个，但按常用阶段讲）
+        1️⃣ beforeCreate（Options API）
+        组件实例刚创建，还没初始化数据。
+        Composition API 里基本感知不到。
+        2️⃣ created（Options API）
+        数据初始化完成，但 DOM 还没生成。
+        Composition API 中：
+        setup 就是在 created 之前执行
+        3️⃣ setup（Vue3 核心阶段）
+        最重要阶段：
+        创建响应式数据
+        定义方法
+        注册 watch
+        注册生命周期钩子
+        这时：
+        DOM 还没生成
+        ref 还没绑定
+        4️⃣ onBeforeMount
+        组件即将渲染到 DOM。
+        还没有真实 DOM。
+        5️⃣ onMounted ⭐
+        DOM 已经生成并插入页面。
+        这时：
+        可以操作 DOM
+        可以访问 ref
+        6️⃣ onBeforeUpdate
+        响应式数据变了。
+        DOM 还没更新。
+        7️⃣ onUpdated ⭐
+        DOM 已经更新完成。
+        8️⃣ onBeforeUnmount
+        组件即将销毁。
+        9️⃣ onUnmounted
+        组件已经销毁。
+
+    浏览器里大概有这些：
+        1️⃣ 调用栈（Call Stack）
+        2️⃣ 宏任务队列（Task Queue）
+        3️⃣ 微任务队列（Microtask Queue）
+        4️⃣ Web APIs（定时器、网络请求等）
+
+    异步代码 = 不立即执行，而是交给浏览器处理
+
+    宏任务（Macro Task）包括：
+        setTimeout
+        setInterval
+        DOM 事件
+        网络请求回调
+        script 整体代码
+        可以理解为：一轮大的任务
+
+        微任务（Micro Task）包括：
+            Promise.then
+            async/await 后续代码
+            queueMicrotask
+            MutationObserver
+            微任务优先级比宏任务高。
+    
+    每一轮 Event Loop：
+        1. 执行一个宏任务（整个scipt也算一个宏任务）
+        2. 执行所有微任务（清空微任务队列）
+        3. 浏览器可能进行一次渲染
+        4. 开始下一轮
+        ⚠️ 重点：
+        微任务优先级高于宏任务
+        每次宏任务结束后都会清空微任务队列
+    -->
+    
+</body>
+</html>

@@ -1,0 +1,1 @@
+const productMap = new Map()
