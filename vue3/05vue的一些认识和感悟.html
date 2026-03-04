@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
+
 <body>
     <!-- 
     Vue 是：
@@ -102,7 +104,20 @@
         ⚠️ 重点：
         微任务优先级高于宏任务
         每次宏任务结束后都会清空微任务队列
+
+
+    在 Vue.js 3 中：
+        setup()
+        ↓
+        首次 render（生成虚拟DOM）
+        ↓
+        真实 DOM 挂载完成
+        ↓
+        onMounted()
+    所以：
+        模板渲染一定早于 onMounted 执行。
     -->
-    
+
 </body>
+
 </html>
